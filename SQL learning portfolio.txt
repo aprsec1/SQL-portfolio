@@ -1,0 +1,388 @@
+-- Creating a new table
+Create table practice (
+ID int,
+kolumna1 varchar(50),
+kolumna2 date,
+kolumna3 varchar(100)
+);
+
+-- Inserting values into the created table
+Insert into practice
+values
+( 1, 'kolumna1', '12.07.2022', 'kolumna3');
+
+Insert into practice
+values
+( 2, 'kolumna2', '11.07.2022', 'kolumna5');
+
+Insert into practice values
+( 4, 'kolumna7', '2022-04-04', 'kolumna3'),
+( 5, 'kolumna8', '2020-05-05', 'kolumna3'),
+( 6, 'kolumna9', '2019-01-01', 'kolumna3')
+
+-- Basic queries
+select top 2 ID, stupac3 from practice2; -- invalid object name > edit > intelisense > refresh local storage
+
+select distinct (kolumna2) from practice;
+
+select count (kolumna3) as broj from practice;
+
+-- Altering table, adding new row, inserting new values
+alter table practice
+add iznosi int;
+
+insert into practice (iznosi) values(34),(305),(305555),(3022);
+
+update practice set iznosi = 30 where ID = 1;
+
+alter table practice drop column iznosi;
+
+drop table practice;
+
+delete from practice where ID is null;
+
+-- creating new table, defining primary key with the column and staring ID number
+create table practice3 (
+ID int PRIMARY KEY IDENTITY(1,1),
+kolumna1 varchar(20) not null,
+kolumna2 date not null,
+kolumna3 varchar(20) not null);
+
+insert into practice3 (kolumna1, kolumna2, kolumna3)values ('addfd', '2021-02-02', 'b'), ('cddfdf', '2021-03-02', 'd'), ('vbbbb', '2022-02-07', 'bdsafa'), ('vdf', '2022-02-07', 'battt');
+
+
+
+alter table practice3 add iznosi int;
+insert into practice3 (iznosi) values (30), (22), (31), (40);
+
+alter table practice3 drop column iznosi;
+drop table practice3;
+
+-- stored procedure that is describing columns in the table, (describe in mysql)
+exec sp_columns practice3;
+exec sp_help practice3;
+-- another way to see column description, sorting it by ordinal position of the columns in the table
+select * 
+from information_schema.columns 
+where table_name = 'practice3'
+order by ordinal_position
+
+
+ALTER TABLE practice2
+ALTER COLUMN ID INT NOT NULL;
+
+-- add constraint necessary for adding primary key or foreign key in the table
+alter table practice2 add constraint ID primary key (ID);
+
+exec sp_columns practice3;
+exec sp_help practice3;
+
+-- query and stored procedure for finding primary and foreign keys in the tables
+select * from INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
+EXEC sp_pkeys practice3;
+EXEC sp_pkeys practice2;
+
+-- joins
+-- inner joins, display everything that is common between the tables
+select * from DB_practice.dbo.practice2 as A
+inner join DB_practice.dbo.practice3 as B
+on A.ID = B.ID;
+
+-- full outer joins, display everything from both tables
+select * from DB_practice.dbo.practice2 as A
+full outer join DB_practice.dbo.practice3 as B
+on A.ID = B.ID;
+
+-- left outer join, display everything from first table and fill it with values from second table where they match
+select * from DB_practice.dbo.practice2 as A
+left outer join DB_practice.dbo.practice3 as B
+on A.ID = B.ID;
+
+
+insert into practice2 (ID) values (7);
+
+-- right outer join, display everything from second table and fill it with values from first table where they match
+select * from DB_practice.dbo.practice2 as A
+right outer join DB_practice.dbo.practice3 as B
+on A.ID = B.ID;
+
+
+-- union, union all. display all into the one table from both tables
+
+select * from practice2
+union -- works as distinct
+select * from practice3
+
+select * from practice2
+union all -- this can display duplicate values if the data is same in both tables
+select * from practice3
+
+-- using wildcards
+select * from practice2 where stupac3 like 'b%';
+update practice2 set stupac3 = 'bokal' where ID = 1;
+
+select * from practice2;
+select * from practice2 where stupac3 is not null order by stupac3;
+
+-- case statement
+select *, 
+case
+	when stupac3 = 'bokal' then 'žedan'
+	when stupac3 = 'kolumna3' then 'columns'
+	else 'stupci'
+end as case_column
+from practice2 where stupac3 is not null order by stupac3;
+
+select * from practice;
+select * from practice2;
+select * from practice3;
+
+select *, 
+Case
+	when kolumna1 = 'kolumna7' then iznosi + 60
+	when kolumna1 = 'kolumna3' then iznosi + 50
+	else 40
+end as case_column
+from DB_practice.dbo.practice as A
+inner join DB_practice.dbo.practice2 as B
+on A.ID = B.ID;
+
+-- partition by, it takes group by and adds the value in each row
+
+select *, count(kolumna1) over (partition by kolumna1) as part
+from DB_practice.dbo.practice as A
+inner join DB_practice.dbo.practice2 as B
+on A.ID = B.ID;
+-- ovo prikazuje partition by samo za svaki row posebno
+select kolumna1, count(kolumna1) as part2
+from DB_practice.dbo.practice as A
+inner join DB_practice.dbo.practice2 as B
+on A.ID = B.ID
+group by kolumna1;
+
+-- CTE 
+-- its not stored anywhere, it needs to be executed with the query which looks at CTE
+--CTE1
+WITH CTE_test as (select *, 
+case
+	when stupac3 = 'bokal' then 'žedan'
+	when stupac3 = 'kolumna3' then 'columns'
+	else 'stupci'
+end as case_column
+from practice2 where stupac3 is not null)
+Select * from CTE_test;
+
+-- CTE2
+CREATE TABLE Employees
+(
+  EmployeeID int NOT NULL PRIMARY KEY,
+  FirstName varchar(50) NOT NULL,
+  LastName varchar(50) NOT NULL,
+  ManagerID int NULL
+)
+INSERT INTO Employees VALUES (1, 'Ken', 'Thompson', NULL)
+INSERT INTO Employees VALUES (2, 'Terri', 'Ryan', 1)
+INSERT INTO Employees VALUES (3, 'Robert', 'Durello', 1)
+INSERT INTO Employees VALUES (4, 'Rob', 'Bailey', 2)
+INSERT INTO Employees VALUES (5, 'Kent', 'Erickson', 2)
+INSERT INTO Employees VALUES (6, 'Bill', 'Goldberg', 3)
+INSERT INTO Employees VALUES (7, 'Ryan', 'Miller', 3)
+INSERT INTO Employees VALUES (8, 'Dane', 'Mark', 5)
+INSERT INTO Employees VALUES (9, 'Charles', 'Matthew', 6)
+INSERT INTO Employees VALUES (10, 'Michael', 'Jhonson', 6) 
+
+SELECT * FROM Employees;
+
+WITH cteEmployee as (select * from Employees where EmployeeID = 5)
+SELECT * FROM cteEmployee;
+
+SELECT * FROM Employees;
+-- copy paste sa weba, proučiti, cte, union izmedju tablice Employees i CTE
+WITH
+  cteReports (EmpID, FirstName, LastName, MgrID, EmpLevel)
+  AS
+  (
+    SELECT EmployeeID, FirstName, LastName, ManagerID, 1
+    FROM Employees
+    WHERE ManagerID IS NULL
+    UNION ALL
+    SELECT e.EmployeeID, e.FirstName, e.LastName, e.ManagerID, 
+      r.EmpLevel + 1
+    FROM Employees e
+      INNER JOIN cteReports r
+        ON e.ManagerID = r.EmpID
+  )
+
+-- SELECT * FROM cteReports;
+SELECT
+  FirstName + ' ' + LastName AS FullName, 
+  EmpLevel,
+  (SELECT FirstName + ' ' + LastName FROM Employees 
+    WHERE EmployeeID = cteReports.MgrID) AS Manager
+FROM cteReports 
+ORDER BY EmpLevel, MgrID 
+-- vrati first name i last name skupa kao zaposlenik, te vrati ime menadžera za svakog zaposlenika
+
+-- ///
+-- two ways of defining shorter name of a table
+select * from Employees Y
+where Y.EmployeeID is not null;
+
+select * from Employees as B
+where B.ManagerID is not null;
+
+-- Temp tables, if some table have large amount of data, its great for using it to query out necessary data and save it in temp table for faster query time process
+-- temp tables are stored in Databases > System Databases > tempdb > tables > temporary tables
+
+Drop table if exists #temp_Employees -- procedure which is used to delete temp table if exists, its executed with statement below
+Create table #temp_Employees (
+EmpID int,
+Ime varchar (100),
+Prezime varchar (100),
+MgrID int);
+
+insert into #temp_Employees select * from Employees;
+select * from #temp_Employees;
+
+
+
+-- new simple database is imported for this purpose, production and sales, ER diagram is saved with sql query for DB creation
+-- added in GitHub
+
+-- string functions
+--UPPER LOWER
+select *, upper (product_name) as A, lower (product_name) as B from DB_practice.production.products;
+
+-- LTRIM, RTRIM, TRIM
+
+CREATE table strings (
+stupac1 varchar(50),
+stupac2 varchar(50),
+stupac3 varchar(50));
+
+insert into strings values (
+'1001  ', 'Jimbo', 'Prezime'),
+('   1002', 'Pamela', 'Prezimeee'),
+('1003', 'ANTonio', 'prez - ime');
+
+select * from strings;
+select stupac1, trim(stupac1) as a from strings;
+select stupac1, ltrim(stupac1) as a, rtrim(stupac1) as b from strings;
+
+-- replace
+select stupac3, replace(stupac3, ' - ime','ime') from strings;
+select stupac3, replace(stupac3, '- ime','') from strings;
+select stupac3, replace(stupac3, 'e','') from strings; -- mice sva slova E
+select stupac3, charindex (replace(stupac3, 'e',''), stupac3, 6) from strings where stupac3 = 'Prezimeee'; -- przim, prouči kako se pozicionirati na određeno slovo u stringu
+-- learn how charindex works
+-- what is the difference charindex vs substring?
+
+-- substring
+
+select substring(stupac2,1,3) from strings ;
+select substring(stupac2,3,3) from strings ;
+
+-- here is where I did create accidentaly table on master DB, this is the way to transfer it on a different DB on the same server
+select * into DB_practice.dbo.strings from master.dbo.strings;
+-- second way, create table..., insert into... (select * from master.strings...)
+drop table master.dbo.strings;
+
+-- finaly learned how its defined in MSSQL
+use [DB_practice];
+USE DB_practice -- mysql
+
+-- users permission, under DB_name > Security > Users
+-- query:
+SELECT  pri.name As Username
+,       pri.type_desc AS [User Type]
+,       permit.permission_name AS [Permission]
+,       permit.state_desc AS [Permission State]
+,       permit.class_desc Class
+,       object_name(permit.major_id) AS [Object Name]
+FROM    sys.database_principals pri
+LEFT JOIN
+        sys.database_permissions permit
+ON      permit.grantee_principal_id = pri.principal_id
+
+-- stored procedure, under DB_name > Programmability > Stored Procudures (here are my created procedures) > System Stored procedure
+GO -- I did get an error, by investingatind I had to put GO, it breaks the script with GO
+CREATE PROCEDURE test
+as
+Select * from sales.orders where store_id != 1 and order_date >= '2016-06-02';
+
+exec test;
+
+
+go
+select * from sales.orders;
+select * from sales.stores;
+
+select A.order_id, A.order_date, A.shipped_date, A.store_id, B.store_name, B.email from sales.orders As A
+inner join sales.stores as B
+on A.store_id = B.store_id;
+-- this JOIN add in new procedure
+GO
+CREATE PROCEDURE test2 as
+select A.order_id, A.order_date, A.shipped_date, A.store_id, B.store_name, B.email from sales.orders As A
+inner join sales.stores as B
+on A.store_id = B.store_id;
+
+exec test2;
+
+
+-- I had to change the stored procedure, this is done under > Programmability > stored procedures > desni klik modify
+-- second way with ALTER PROCEDURE
+GO
+CREATE PROCEDURE test3 
+@store_name varchar(200)    -- using variables example for defining which store name I want to query out
+as
+select A.order_id, A.order_date, A.shipped_date, A.store_id, B.store_name, B.email from sales.orders As A
+inner join sales.stores as B
+on A.store_id = B.store_id;
+
+exec test3 @store_name = 'Baldwin Bikes';
+-- I had to modify the created procedure, it was not working, I did not add " Where B.store_name = @store_name; " into the query
+
+
+-- TO DO:
+
+-- TRIGGERS
+select * from sys.triggers; -- show all system triggers
+
+
+-- VIEWS 
+GO -- Investigating on web, I had to add GO so I could separate the parts of the script, it can't be in the same batch, Create View must be the only statement in the batch
+ 
+create view proba 
+as 
+select * from production.stocks where quantity > 20;
+GO
+select * from proba;
+
+-- this query had no error, this is a 2nd way to create it, works with exec function, called Dynamic SQL
+exec('
+create view proba2 
+as 
+select * from production.stocks where quantity > 20;
+')
+
+select * from proba2;
+
+
+-- TO DO:
+
+-- PARTITION BY
+-- COALESCE
+-- OUTER APPLY
+-- CROSS APPLY
+-- INTERSECT
+-- EXCEPT
+-- PIVOT
+-- EXTRACT
+-- SPLIT
+-- DISTINCT
+-- SELF JOIN
+-- CALL
+-- CREATE FUNCTION
+
+
